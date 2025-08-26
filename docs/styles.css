@@ -318,3 +318,52 @@ footer {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.hidden {
+  display: none;
+}
+
+.page {
+  text-align: center;
+  padding: 40px;
+}
+
+.settings-panel {
+  display: inline-block;
+  text-align: left;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.setting-group {
+  margin-bottom: 10px;
+}
+
+.video-container {
+  margin-top: 20px;
+}
+
+.recording-controls {
+  margin-top: 15px;
+}
+
+.btn {
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+}
+
+.btn-secondary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
