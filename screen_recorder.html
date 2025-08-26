@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen + Camera Overlay Recorder</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Screen Recorder Pro</h1>
+      <p>Record your screen with camera overlay in professional quality</p>
+    </header>
+
+    <div class="main-content">
+      <!-- Controls Panel -->
+      <div class="controls-panel">
+        <div class="recording-controls">
+          <button id="startBtn" class="btn btn-primary">
+            <span class="btn-icon">🔴</span>
+            Start Recording
+          </button>
+          <button id="stopBtn" class="btn btn-secondary" disabled>
+            <span class="btn-icon">⏹️</span>
+            Stop Recording
+          </button>
+          <button id="pauseBtn" class="btn btn-secondary" disabled>
+            <span class="btn-icon">⏸️</span>
+            Pause
+          </button>
+        </div>
+
+        <div class="status-indicator">
+          <div id="recordingStatus" class="status-idle">Ready to Record</div>
+          <div id="recordingTime" class="recording-timer">00:00</div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+          <h3>Recording Settings</h3>
+          
+          <div class="setting-group">
+            <label for="overlayPosition">Camera Position:</label>
+            <select id="overlayPosition">
+              <option value="bottom-left">Bottom Left</option>
+              <option value="bottom-right">Bottom Right</option>
+              <option value="top-left">Top Left</option>
+              <option value="top-right">Top Right</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label for="overlaySize">Camera Size:</label>
+            <select id="overlaySize">
+              <option value="small">Small (20%)</option>
+              <option value="medium" selected>Medium (25%)</option>
+              <option value="large">Large (30%)</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label for="overlayShape">Camera Shape:</label>
+            <select id="overlayShape">
+              <option value="circle" selected>Circle</option>
+              <option value="rectangle">Rectangle</option>
+              <option value="rounded">Rounded Rectangle</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label for="quality">Video Quality:</label>
+            <select id="quality">
+              <option value="720p">HD (720p)</option>
+              <option value="1080p" selected>Full HD (1080p)</option>
+              <option value="1440p">QHD (1440p)</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label>
+              <input type="checkbox" id="includeMicrophone" checked>
+              Include Microphone Audio
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Preview Panel -->
+      <div class="video-panel">
+        <div class="video-container">
+          <video id="preview" autoplay muted playsinline></video>
+          <div class="video-label">Camera Preview</div>
+        </div>
+
+        <div class="video-container">
+          <video id="recording" controls></video>
+          <div class="video-label">Recorded Video</div>
+        </div>
+
+        <div class="download-section">
+          <a id="downloadLink" class="btn btn-download" style="display:none;">
+            <span class="btn-icon">📥</span>
+            Download Recording
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Built with modern web technologies • Works in Chrome, Edge, and Firefox</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
