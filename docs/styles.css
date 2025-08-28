@@ -367,3 +367,17 @@ footer {
   color: white;
   border: none;
 }
+
+#preview{
+  width: 50%;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
