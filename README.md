@@ -1,4 +1,4 @@
-# ScreenRec Lite  
+# Screen Recorder
 
 A lightweight client-side screen recording app. No backend, no accounts, no uploads. Record your screen directly in the browser and save locally.  
 
