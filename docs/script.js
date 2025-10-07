@@ -125,56 +125,75 @@ class ScreenRecorder {
     try {
       this.updateStatus('Initializing...');
       const qualityConstraints = this.getQualityConstraints();
-      this.screenStream = await navigator.mediaDevices.getDisplayMedia({ video:{...qualityConstraints, frameRate:30}, audio:false });
-      this.camStream = await navigator.mediaDevices.getUserMedia({ video:{width:640,height:480}, audio:this.settings.includeMicrophone });
+      this.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { ...qualityConstraints, frameRate: 30 }, audio: false });
+      this.camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: this.settings.includeMicrophone });
 
-      const screenVideo = document.createElement('video'); screenVideo.srcObject=this.screenStream; await screenVideo.play();
-      const camVideo = document.createElement('video'); camVideo.srcObject=this.camStream; await camVideo.play();
+      const screenVideo = document.createElement('video');
+      screenVideo.srcObject = this.screenStream;
+      await screenVideo.play();
+      const camVideo = document.createElement('video');
+      camVideo.srcObject = this.camStream;
+      await camVideo.play();
 
-      const preview = document.getElementById('preview'); if(preview) preview.srcObject=this.camStream;
+      this.canvas = document.createElement('canvas');
+      const settings = this.screenStream.getVideoTracks()[0].getSettings();
+      this.canvas.width = settings.width || qualityConstraints.width;
+      this.canvas.height = settings.height || qualityConstraints.height;
+      this.ctx = this.canvas.getContext('2d');
 
-      this.canvas=document.createElement('canvas');
-      const settings=this.screenStream.getVideoTracks()[0].getSettings();
-      this.canvas.width=settings.width||qualityConstraints.width;
-      this.canvas.height=settings.height||qualityConstraints.height;
-      this.ctx=this.canvas.getContext('2d');
+      // Set up preview: only video, no audio
+      const preview = document.getElementById('preview');
+      if (preview) {
+        const previewStream = new MediaStream(this.canvas.captureStream(30).getVideoTracks());
+        preview.srcObject = previewStream;
+        preview.muted = true;
+        preview.volume = 0;
+      }
 
-      this.isRecording=true;
-      const draw=()=>{
-        if(!this.isRecording) return;
-        this.ctx.drawImage(screenVideo,0,0,this.canvas.width,this.canvas.height);
-        const size=this.getOverlaySize(this.canvas.height);
-        const pos=this.getOverlayPosition(this.canvas.width,this.canvas.height,size);
-        this.drawOverlay(camVideo,pos.x,pos.y,size);
-        this.animationFrameId=requestAnimationFrame(draw);
+      this.isRecording = true;
+
+      // Throttle draw loop to 30fps, synchronize to screenVideo play
+      const draw = () => {
+        if (!this.isRecording) return;
+        this.ctx.drawImage(screenVideo, 0, 0, this.canvas.width, this.canvas.height);
+        const size = this.getOverlaySize(this.canvas.height);
+        const pos = this.getOverlayPosition(this.canvas.width, this.canvas.height, size);
+        this.drawOverlay(camVideo, pos.x, pos.y, size);
+        this.animationFrameId = setTimeout(draw, 1000 / 30); // 30 fps
       };
-      draw();
+      // Start draw loop only after screenVideo is playing
+      if (screenVideo.readyState >= 2) {
+        draw();
+      } else {
+        screenVideo.onplay = draw;
+      }
 
-      this.canvasStream=this.canvas.captureStream(30);
-      const tracks=[...this.canvasStream.getVideoTracks()];
-      if(this.settings.includeMicrophone && this.camStream.getAudioTracks().length>0) tracks.push(...this.camStream.getAudioTracks());
-      this.combinedStream=new MediaStream(tracks);
+      this.canvasStream = this.canvas.captureStream(30);
+      const tracks = [...this.canvasStream.getVideoTracks()];
+      if (this.settings.includeMicrophone && this.camStream.getAudioTracks().length > 0) tracks.push(...this.camStream.getAudioTracks());
+      this.combinedStream = new MediaStream(tracks);
 
+      // Lower videoBitsPerSecond for real-time encoding
       let options = MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus') ?
-        { mimeType:'video/webm; codecs=vp9,opus', videoBitsPerSecond:2000000 } :
+        { mimeType: 'video/webm; codecs=vp9,opus', videoBitsPerSecond: 1000000 } :
         MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus') ?
-        { mimeType:'video/webm; codecs=vp8,opus', videoBitsPerSecond:2000000 } :
+        { mimeType: 'video/webm; codecs=vp8,opus', videoBitsPerSecond: 1000000 } :
         MediaRecorder.isTypeSupported('video/webm') ?
-        { mimeType:'video/webm', videoBitsPerSecond:2000000 } :
-        { videoBitsPerSecond:2000000 };
+        { mimeType: 'video/webm', videoBitsPerSecond: 1000000 } :
+        { videoBitsPerSecond: 1000000 };
 
-      this.mediaRecorder=new MediaRecorder(this.combinedStream,options);
-      this.recordedChunks=[];
-      this.mediaRecorder.ondataavailable=(e)=>{if(e.data.size>0) this.recordedChunks.push(e.data);};
-      this.mediaRecorder.onstop=()=>this.handleRecordingComplete();
+      this.mediaRecorder = new MediaRecorder(this.combinedStream, options);
+      this.recordedChunks = [];
+      this.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) this.recordedChunks.push(e.data); };
+      this.mediaRecorder.onstop = () => this.handleRecordingComplete();
       this.mediaRecorder.start(1000);
       this.startTimer();
       this.updateStatus('Recording');
 
       // Callback
-      if(this.onStart) this.onStart();
-    } catch(e){
-      console.error(e); this.updateStatus('Error: '+e.message); this.cleanup();
+      if (this.onStart) this.onStart();
+    } catch (e) {
+      console.error(e); this.updateStatus('Error: ' + e.message); this.cleanup();
     }
   }
 
@@ -198,10 +217,10 @@ class ScreenRecorder {
   }
 
   cleanup() {
-    if(this.animationFrameId){ cancelAnimationFrame(this.animationFrameId); this.animationFrameId=null; }
-    if(this.screenStream) this.screenStream.getTracks().forEach(t=>t.stop()); this.screenStream=null;
-    if(this.camStream) this.camStream.getTracks().forEach(t=>t.stop()); this.camStream=null;
-    this.isRecording=false; this.isPaused=false; this.mediaRecorder=null; this.canvas=null; this.ctx=null; this.canvasStream=null; this.combinedStream=null;
+    if (this.animationFrameId) { clearTimeout(this.animationFrameId); this.animationFrameId = null; }
+    if (this.screenStream) this.screenStream.getTracks().forEach(t => t.stop()); this.screenStream = null;
+    if (this.camStream) this.camStream.getTracks().forEach(t => t.stop()); this.camStream = null;
+    this.isRecording = false; this.isPaused = false; this.mediaRecorder = null; this.canvas = null; this.ctx = null; this.canvasStream = null; this.combinedStream = null;
   }
 }
 
