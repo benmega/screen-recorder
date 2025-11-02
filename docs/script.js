@@ -128,12 +128,19 @@ class ScreenRecorder {
       this.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { ...qualityConstraints, frameRate: 30 }, audio: false });
       this.camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: this.settings.includeMicrophone });
 
-      const screenVideo = document.createElement('video');
-      screenVideo.srcObject = this.screenStream;
-      await screenVideo.play();
-      const camVideo = document.createElement('video');
-      camVideo.srcObject = this.camStream;
-      await camVideo.play();
+  const screenVideo = document.createElement('video');
+  screenVideo.srcObject = this.screenStream;
+  // Prevent any audio from the screen stream playing back in the page
+  screenVideo.muted = true;
+  screenVideo.playsInline = true;
+  await screenVideo.play();
+  const camVideo = document.createElement('video');
+  camVideo.srcObject = this.camStream;
+  // Mute the temporary camera element so microphone audio isn't played back locally (avoids echo)
+  camVideo.muted = true;
+  camVideo.volume = 0;
+  camVideo.playsInline = true;
+  await camVideo.play();
 
       this.canvas = document.createElement('canvas');
       const settings = this.screenStream.getVideoTracks()[0].getSettings();
