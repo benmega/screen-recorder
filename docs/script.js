@@ -25,8 +25,8 @@ class ScreenRecorder {
   }
 
   getOverlaySize(canvasHeight) {
-    const sizes = { small: canvasHeight*0.25, medium: canvasHeight*0.3, large: canvasHeight*0.4 };
-    return Math.floor(sizes[this.settings.overlaySize] || sizes.large);
+    const pct = this.settings.overlaySize || 40;
+    return Math.floor(canvasHeight * (pct / 100));
   }
 
   getOverlayPosition(canvasWidth, canvasHeight, size) {
@@ -194,7 +194,7 @@ class ScreenRecorder {
 // Settings Management
 const recorderSettings = {
   overlayPosition: 'bottom-left',
-  overlaySize: 'large',
+  overlaySize: 40,
   overlayShape: 'circle',
   quality: '720p',
   includeMicrophone: true
@@ -204,8 +204,7 @@ function updatePreview() {
   const camera = document.getElementById('previewCamera');
   if(!camera) return;
   
-  const sizeMap = { 'small': 25, 'medium': 30, 'large': 40 };
-  const sizePct = sizeMap[recorderSettings.overlaySize] || 40;
+  const sizePct = recorderSettings.overlaySize || 40;
   camera.style.height = `${sizePct}%`;
   
   if (recorderSettings.overlayShape === 'circle') camera.style.borderRadius = '50%';
@@ -231,18 +230,10 @@ function loadSettings() {
   try {
     const saved = JSON.parse(sessionStorage.getItem('recorderSettings') || '{}');
     Object.assign(recorderSettings, saved);
-    
-    const posRadio = document.querySelector(`input[name="overlayPosition"][value="${recorderSettings.overlayPosition}"]`);
-    if(posRadio) posRadio.checked = true;
 
-    const shapeRadio = document.querySelector(`input[name="overlayShape"][value="${recorderSettings.overlayShape}"]`);
-    if(shapeRadio) shapeRadio.checked = true;
-
-    const sizeMap = ['small', 'medium', 'large'];
-    const sizeIndex = sizeMap.indexOf(recorderSettings.overlaySize);
-    if(sizeIndex >= 0) {
-      document.getElementById('overlaySize').value = sizeIndex;
-      document.getElementById('sizeLabel').textContent = ['25%', '30%', '40%'][sizeIndex];
+    if (recorderSettings.overlaySize) {
+      document.getElementById('overlaySize').value = recorderSettings.overlaySize;
+      document.getElementById('sizeLabel').textContent = `${recorderSettings.overlaySize}%`;
     }
 
     const qMap = ['480p', '720p', '1080p', '1440p'];
@@ -252,29 +243,43 @@ function loadSettings() {
       document.getElementById('qualityLabel').textContent = ['480p', '720p', '1080p', '1440p'][qIndex];
     }
     
-    document.getElementById('includeMicrophone').checked = recorderSettings.includeMicrophone;
+    updateMicIcons();
   } catch { }
   updatePreview();
+}
+
+function updateMicIcons() {
+  const on = document.getElementById('micIconOn');
+  const off = document.getElementById('micIconOff');
+  if (on && off) {
+    on.style.display = recorderSettings.includeMicrophone ? 'block' : 'none';
+    off.style.display = recorderSettings.includeMicrophone ? 'none' : 'block';
+  }
 }
 
 // Multi-stage flow
 document.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
 
-  document.querySelectorAll('input[name="overlayPosition"]').forEach(el => {
-    el.onchange = (e) => { recorderSettings.overlayPosition = e.target.value; saveSettings(); };
+  // Position clicks
+  document.querySelectorAll('.corner-target').forEach(el => {
+    el.onclick = (e) => { recorderSettings.overlayPosition = e.target.dataset.pos; saveSettings(); };
   });
-  
-  const sizeMap = ['small', 'medium', 'large'];
-  document.getElementById('overlaySize').oninput = (e) => { 
-    recorderSettings.overlaySize = sizeMap[e.target.value]; 
-    document.getElementById('sizeLabel').textContent = ['25%', '30%', '40%'][e.target.value];
-    saveSettings(); 
+
+  // Shape clicks
+  const shapes = ['circle', 'rectangle', 'rounded'];
+  document.getElementById('previewCamera').onclick = () => {
+    const currentIndex = shapes.indexOf(recorderSettings.overlayShape);
+    const nextIndex = (currentIndex + 1) % shapes.length;
+    recorderSettings.overlayShape = shapes[nextIndex];
+    saveSettings();
   };
   
-  document.querySelectorAll('input[name="overlayShape"]').forEach(el => {
-    el.onchange = (e) => { recorderSettings.overlayShape = e.target.value; saveSettings(); };
-  });
+  document.getElementById('overlaySize').oninput = (e) => { 
+    recorderSettings.overlaySize = parseInt(e.target.value, 10); 
+    document.getElementById('sizeLabel').textContent = `${e.target.value}%`;
+    saveSettings(); 
+  };
   
   const qMap = ['480p', '720p', '1080p', '1440p'];
   document.getElementById('quality').oninput = (e) => { 
@@ -283,7 +288,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     saveSettings(); 
   };
   
-  document.getElementById('includeMicrophone').onchange = (e) => { recorderSettings.includeMicrophone = e.target.checked; saveSettings(); };
+  document.getElementById('micBtn').onclick = () => { 
+    recorderSettings.includeMicrophone = !recorderSettings.includeMicrophone; 
+    updateMicIcons();
+    saveSettings(); 
+  };
 
   const setupPage=document.getElementById('setupPage');
   const recordingPage=document.getElementById('recordingPage');

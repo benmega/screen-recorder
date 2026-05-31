@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Screen + Camera Overlay Recorder</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23ef4444%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2270%22 font-family=%22sans-serif%22 font-weight=%22bold%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22white%22>Ω</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,60 +12,41 @@
 
     <!-- Setup Page -->
     <div id="setupPage" class="page">
-      <header>
-        <h1>Setup Your Recording</h1>
-      </header>
-      <div class="settings-panel">
-        <div class="settings-grid">
-          <div class="settings-col">
-            <div class="setting-group">
-              <label>📍 Position</label>
-              <div class="radio-grid position-grid">
-                <label><input type="radio" name="overlayPosition" value="top-left"><span>↖️</span></label>
-                <label><input type="radio" name="overlayPosition" value="top-right"><span>↗️</span></label>
-                <label><input type="radio" name="overlayPosition" value="bottom-left"><span>↙️</span></label>
-                <label><input type="radio" name="overlayPosition" value="bottom-right"><span>↘️</span></label>
-              </div>
-            </div>
-            <div class="setting-group">
-              <label>🔲 Shape</label>
-              <div class="radio-group">
-                <label><input type="radio" name="overlayShape" value="circle" checked><span>⚪</span></label>
-                <label><input type="radio" name="overlayShape" value="rectangle"><span>⬜</span></label>
-                <label><input type="radio" name="overlayShape" value="rounded"><span>🏟️</span></label>
-              </div>
-            </div>
-          </div>
 
-          <div class="settings-col">
-            <div class="setting-group">
-              <label>📏 Size: <span id="sizeLabel" class="val-label">40%</span></label>
-              <input type="range" id="overlaySize" min="0" max="2" step="1" value="2">
-            </div>
-            <div class="setting-group">
-              <label>📺 Quality: <span id="qualityLabel" class="val-label">720p</span></label>
-              <input type="range" id="quality" min="0" max="3" step="1" value="1">
-            </div>
-            <div class="setting-group toggle-group">
-              <label class="toggle-label">
-                🎙️ Mic
-                <div class="toggle-switch">
-                  <input type="checkbox" id="includeMicrophone" checked>
-                  <span class="slider round"></span>
-                </div>
-              </label>
-            </div>
-          </div>
+      <div class="hud-container">
+        <!-- Layout Preview as the main HUD -->
+        <div class="layout-preview" id="layoutPreview">
+          
+          <!-- Interactive Corner Targets for Position -->
+          <div class="corner-target top-left" data-pos="top-left"></div>
+          <div class="corner-target top-right" data-pos="top-right"></div>
+          <div class="corner-target bottom-left" data-pos="bottom-left"></div>
+          <div class="corner-target bottom-right" data-pos="bottom-right"></div>
+          
+          <!-- Camera Bubble -->
+          <div class="preview-camera interactive-bubble" id="previewCamera" title="Click to change shape"></div>
         </div>
 
-        <div class="preview-section">
-          <label class="section-label">👁️ Layout Preview</label>
-          <div class="layout-preview" id="layoutPreview">
-            <div class="preview-camera" id="previewCamera"></div>
-          </div>
+        <!-- Controls underneath preview -->
+        <div class="controls-under">
+           <div class="control-row">
+             <div class="hud-control flex-grow">
+               <label>📺 <span id="qualityLabel">720p</span></label>
+               <input type="range" id="quality" min="0" max="3" step="1" value="1">
+             </div>
+             <div class="hud-control flex-grow">
+               <label>📏 <span id="sizeLabel">40%</span></label>
+               <input type="range" id="overlaySize" min="25" max="60" step="1" value="40">
+             </div>
+             <div class="hud-control mic-btn" id="micBtn" title="Toggle Microphone" style="cursor: pointer; justify-content: center;">
+               <svg id="micIconOn" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+               <svg id="micIconOff" style="display:none; color: #ef4444;" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+             </div>
+           </div>
         </div>
         
-        <button id="beginRecording" class="btn btn-primary begin-btn">🎬 Begin Recording</button>
+        <!-- Unified Record Button -->
+        <button id="beginRecording" class="btn btn-record">RECORD</button>
       </div>
     </div>
 
